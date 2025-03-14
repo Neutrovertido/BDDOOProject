@@ -4,14 +4,16 @@ import viteLogo from '/vite.svg'
 import './App.css'
 import HomePage from './HomePage'
 import Navbar from './navbar'
+import SplitText from './animatedtext'
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
     <>
-      {/*<HomePage /> */}
-       <Navbar /> 
+       <HomePage /> 
+      {/* <Navbar /> */}
+      {/* <SplitText /> */}
     </>
   )
 }
