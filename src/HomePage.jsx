@@ -73,6 +73,30 @@ export default function FutbolStats() {
       { pos: 3, team: 'Bayer Leverkusen', pj: 25, g: 15, e: 5, p: 5, gf: 50, gc: 27, dg: 23, pts: 50 },
       { pos: 4, team: 'RB Leipzig', pj: 25, g: 14, e: 5, p: 6, gf: 48, gc: 23, dg: 25, pts: 47 },
       { pos: 5, team: 'Eintracht Frankfurt', pj: 25, g: 12, e: 7, p: 6, gf: 42, gc: 31, dg: 11, pts: 43 }
+    ],
+    uclGroupA: [
+      { pos: 1, team: 'PSG', pj: 6, g: 4, e: 1, p: 1, gf: 12, gc: 5, dg: 7, pts: 13 },
+      { pos: 2, team: 'Manchester United', pj: 6, g: 3, e: 2, p: 1, gf: 10, gc: 6, dg: 4, pts: 11 },
+      { pos: 3, team: 'RB Leipzig', pj: 6, g: 2, e: 1, p: 3, gf: 8, gc: 9, dg: -1, pts: 7 },
+      { pos: 4, team: 'Club Brugge', pj: 6, g: 0, e: 2, p: 4, gf: 3, gc: 13, dg: -10, pts: 2 }
+    ],
+    uclGroupB: [
+      { pos: 1, team: 'Real Madrid', pj: 6, g: 5, e: 1, p: 0, gf: 14, gc: 3, dg: 11, pts: 16 },
+      { pos: 2, team: 'Inter Milan', pj: 6, g: 3, e: 2, p: 1, gf: 10, gc: 6, dg: 4, pts: 11 },
+      { pos: 3, team: 'Shakhtar Donetsk', pj: 6, g: 1, e: 2, p: 3, gf: 6, gc: 10, dg: -4, pts: 5 },
+      { pos: 4, team: 'Celtic', pj: 6, g: 0, e: 1, p: 5, gf: 2, gc: 13, dg: -11, pts: 1 }
+    ],
+    uclGroupC: [
+      { pos: 1, team: 'Bayern Munich', pj: 6, g: 6, e: 0, p: 0, gf: 18, gc: 2, dg: 16, pts: 18 },
+      { pos: 2, team: 'Barcelona', pj: 6, g: 4, e: 0, p: 2, gf: 12, gc: 6, dg: 6, pts: 12 },
+      { pos: 3, team: 'Ajax', pj: 6, g: 1, e: 1, p: 4, gf: 5, gc: 14, dg: -9, pts: 4 },
+      { pos: 4, team: 'Dinamo Zagreb', pj: 6, g: 0, e: 1, p: 5, gf: 2, gc: 15, dg: -13, pts: 1 }
+    ],
+    uclGroupD: [
+      { pos: 1, team: 'Tottenham', pj: 6, g: 4, e: 1, p: 1, gf: 11, gc: 5, dg: 6, pts: 13 },
+      { pos: 2, team: 'Marseille', pj: 6, g: 3, e: 1, p: 2, gf: 9, gc: 7, dg: 2, pts: 10 },
+      { pos: 3, team: 'Sporting CP', pj: 6, g: 2, e: 1, p: 3, gf: 7, gc: 10, dg: -3, pts: 7 },
+      { pos: 4, team: 'Eintracht Frankfurt', pj: 6, g: 1, e: 1, p: 4, gf: 4, gc: 9, dg: -5, pts: 4 }
     ]
   };
   
@@ -339,7 +363,83 @@ export default function FutbolStats() {
           </div>
         </div>
       </section>
-      
+
+      {/* UEFA Champions League Standings Section */}
+      <section className="py-12 bg-[url('/api/placeholder/1920/1080')] bg-cover bg-center text-blue">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-10">Clasificación - UEFA Champions League</h2>
+          
+          <div className="mb-6 flex flex-wrap justify-center gap-2">
+            <button 
+              onClick={() => setActiveTab('uclGroupA')}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${activeTab === 'uclGroupA' ? 'bg-blue-600 text-blue' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+            >
+              Grupo A
+            </button>
+            <button 
+              onClick={() => setActiveTab('uclGroupB')}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${activeTab === 'uclGroupB' ? 'bg-blue-600 text-blue' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+            >
+              Grupo B
+            </button>
+            <button 
+              onClick={() => setActiveTab('uclGroupC')}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${activeTab === 'uclGroupC' ? 'bg-blue-600 text-blue' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+            >
+              Grupo C
+            </button>
+            <button 
+              onClick={() => setActiveTab('uclGroupD')}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${activeTab === 'uclGroupD' ? 'bg-blue-600 text-blue' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+            >
+              Grupo D
+            </button>
+          </div>
+          
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="bg-gray-100 text-gray-600 text-xs">
+                    <th className="py-3 px-4 text-left">Pos</th>
+                    <th className="py-3 px-4 text-left">Equipo</th>
+                    <th className="py-3 px-2 text-center">PJ</th>
+                    <th className="py-3 px-2 text-center">G</th>
+                    <th className="py-3 px-2 text-center">E</th>
+                    <th className="py-3 px-2 text-center">P</th>
+                    <th className="py-3 px-2 text-center">GF</th>
+                    <th className="py-3 px-2 text-center">GC</th>
+                    <th className="py-3 px-2 text-center">DG</th>
+                    <th className="py-3 px-2 text-center">Pts</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leagueData[activeTab]?.map((team, index) => (
+                    <tr key={index} className={`border-b border-gray-200 hover:bg-blue-50 transition ${index < 2 ? 'bg-blue-50/50' : ''}`}>
+                      <td className={`py-3 px-4 font-medium ${index < 2 ? 'text-blue-600' : ''}`}>{team.pos}</td>
+                      <td className="py-3 px-4 font-medium">{team.team}</td>
+                      <td className="py-3 px-2 text-center">{team.pj}</td>
+                      <td className="py-3 px-2 text-center">{team.g}</td>
+                      <td className="py-3 px-2 text-center">{team.e}</td>
+                      <td className="py-3 px-2 text-center">{team.p}</td>
+                      <td className="py-3 px-2 text-center">{team.gf}</td>
+                      <td className="py-3 px-2 text-center">{team.gc}</td>
+                      <td className="py-3 px-2 text-center font-medium">{team.dg}</td>
+                      <td className="py-3 px-2 text-center font-bold">{team.pts}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="bg-gray-50 px-4 py-3 text-right">
+              <a href="#" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                Ver tabla completa →
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+            
       {/* Top Players */}
       <section className="py-12 bg-gray-100">
         <div className="container mx-auto px-4">
