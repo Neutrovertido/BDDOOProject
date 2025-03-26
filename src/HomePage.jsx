@@ -365,9 +365,11 @@ export default function FutbolStats() {
       </section>
 
       {/* UEFA Champions League Standings Section */}
-      <section className="py-12 bg-[url('mondongo1.jpeg')] bg-cover bg-center text-blue">
+      <section className="text-blue">
+        <div className="py-24 bg-[url('mondongo1.jpg')] bg-cover bg-center">
+        <div class="inset-0 bg-blue-500 opacity-50 overflow-hidden"></div>
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-10">Clasificación - UEFA Champions League</h2>
+          <h2 className="text-white text-3xl font-bold text-center mb-10">Clasificación - UEFA Champions League</h2>
           
           <div className="mb-6 flex flex-wrap justify-center gap-2">
             <button 
@@ -437,6 +439,7 @@ export default function FutbolStats() {
               </a>
             </div>
           </div>
+        </div>
         </div>
       </section>
             
