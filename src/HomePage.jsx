@@ -167,9 +167,7 @@ export default function FutbolStats() {
         </div>
         
         {/* Animated Balls */}
-        <div className="hidden md:block absolute bottom-0 left-1/4 w-20 h-20 rounded-full bg-blue-500 opacity-10 animate-float"></div>
-        <div className="hidden md:block absolute top-1/4 right-1/3 w-32 h-32 rounded-full bg-green-500 opacity-10 animate-float animation-delay-1000"></div>
-        <div className="hidden md:block absolute bottom-1/4 right-1/4 w-16 h-16 rounded-full bg-yellow-500 opacity-10 animate-float animation-delay-2000"></div>
+        
       </section>
       
       {/* Stats Counter section */}
@@ -381,24 +379,6 @@ export default function FutbolStats() {
           <div className="text-center mt-8">
             <a href="#" className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-all duration-300 transform hover:-translate-y-1">
               Ver más estadísticas
-            </a>
-          </div>
-        </div>
-      </section>
-      
-      {/* Call to Action */}
-      <section className="py-16 bg-gradient-to-r from-blue-800 to-blue-900 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">¿Listo para sumergirte en el mundo del fútbol?</h2>
-          <p className="text-xl md:text-2xl text-blue-200 mb-8 max-w-3xl mx-auto">
-            Accede a estadísticas avanzadas, análisis detallados y cobertura en tiempo real de tus equipos y jugadores favoritos.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="#" className="inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg text-center">
-              Registrarse Gratis
-            </a>
-            <a href="#" className="inline-block bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-8 rounded-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg text-center">
-              Explorar Premium
             </a>
           </div>
         </div>
