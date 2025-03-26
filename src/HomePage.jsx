@@ -365,7 +365,7 @@ export default function FutbolStats() {
       </section>
 
       {/* UEFA Champions League Standings Section */}
-      <section className="py-12 bg-[url('/api/placeholder/1920/1080')] bg-cover bg-center text-blue">
+      <section className="py-12 bg-[url('mondongo1.jpeg')] bg-cover bg-center text-blue">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-10">Clasificación - UEFA Champions League</h2>
           
