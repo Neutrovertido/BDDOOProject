@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getMatches, getTeams, getPlayers, getLeagues } from "../server/api";
+import { getLiveMatches } from "../server/footballapi";
 import {
   ChevronDown,
   Menu,
@@ -41,6 +42,7 @@ export default function FutbolStats() {
   useEffect(() => {
     async function fetchData() {
       try {
+        // Primero obtener los datos locales
         const [matchesData, teamsData, playersData, leaguesData] =
           await Promise.all([
             getMatches(),
@@ -49,7 +51,11 @@ export default function FutbolStats() {
             getLeagues(),
           ]);
 
-        // Procesar datos para estadísticas generales
+        // Obtener partidos en vivo
+        const liveMatchesData = await getLiveMatches();
+        setLiveMatches(liveMatchesData);
+
+        // Estadísticas generales
         const statsData = [
           {
             label: "Ligas",
@@ -74,34 +80,8 @@ export default function FutbolStats() {
         ];
         setStats(statsData);
 
-        // Procesar datos para partidos en vivo
-        const processedMatches = matchesData.map((match) => ({
-          id: match.idpartido,
-          homeTeam:
-            teamsData.find((team) => team.id_equipo === match.id_equipo)
-              ?.nombre_equipo || "Unknown",
-          homeCode:
-            teamsData
-              .find((team) => team.id_equipo === match.id_equipo)
-              ?.nombre_equipo.substring(0, 3)
-              .toUpperCase() || "UNK",
-          homeScore: match.goles_loc,
-          awayTeam:
-            teamsData.find((team) => team.id_equipo !== match.id_equipo)
-              ?.nombre_equipo || "Unknown",
-          awayCode:
-            teamsData
-              .find((team) => team.id_equipo !== match.id_equipo)
-              ?.nombre_equipo.substring(0, 3)
-              .toUpperCase() || "UNK",
-          awayScore: match.goles_vis,
-          minute: 45,
-          league:
-            leaguesData.find((league) => league.idliga === match.idliga)
-              ?.nombre || "Unknown",
-          highlight: false,
-        }));
-        setLiveMatches(processedMatches);
+        // Actualizar partidos en vivo
+        setLiveMatches(liveMatchesData);
 
         // Procesar datos para tabla de posiciones
         const leaguesStandings = {};
@@ -151,31 +131,34 @@ export default function FutbolStats() {
           leaguesStandings[leagueName] = standings;
         });
         setLeagueData(leaguesStandings);
+
         // Procesar datos para jugadores destacados
         const processedTopPlayers = playersData.slice(0, 3).map((player) => ({
           name: `${player.nombre} ${player.apellido}`,
           team:
             teamsData.find((t) => t.id_equipo === player.id_equipo)
               ?.nombre_equipo || "Unknown",
-          image: "https://via.placeholder.com/150",
+          // Usar una imagen de ejemplo más confiable
+          image: `https://ui-avatars.com/api/?name=${player.nombre}+${player.apellido}&background=random`,
           goals: 0,
         }));
         setTopPlayers(processedTopPlayers);
 
-        // Actualizar estados
-        // Actualizar estados
-        setMatches(matchesData);
-        setTeams(teamsData);
-        setPlayers(playersData);
-        setLeagues(leaguesData);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
+        // En caso de error, establecer algunos datos por defecto
+        setLiveMatches([]);
         setLoading(false);
       }
     }
 
     fetchData();
+
+    // Actualizar partidos en vivo cada 60 segundos
+    const interval = setInterval(fetchData, 60000);
+
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) {
@@ -249,87 +232,86 @@ export default function FutbolStats() {
             Partidos en Directo
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {liveMatches.map((match) => (
-              <div
-                key={match.id}
-                className={`bg-blue-700/30 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 backdrop-blur-sm ${
-                  match.highlight ? "ring-2 ring-yellow-400" : ""
-                }`}
-              >
-                <div className="p-1 bg-blue-600/50 text-xs font-medium text-center flex items-center justify-center">
-                  <div className="flex items-center">
-                    <Clock className="h-3 w-3 mr-1" />
-                    <span>{match.minute}</span>
+          {liveMatches.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-xl text-blue-200">
+                No hay partidos en directo en este momento
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {liveMatches.map((match) => (
+                <div
+                  key={match.id}
+                  className={`bg-blue-700/30 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 backdrop-blur-sm ${
+                    match.highlight ? "ring-2 ring-yellow-400" : ""
+                  }`}
+                >
+                  <div className="p-1 bg-blue-600/50 text-xs font-medium text-center flex items-center justify-center">
+                    <div className="flex items-center">
+                      <Clock className="h-3 w-3 mr-1" />
+                      <span>{match.minute}</span>
+                    </div>
+                    <div className="mx-2">|</div>
+                    <div>{match.league}</div>
+                    {match.highlight && (
+                      <>
+                        <div className="mx-2">|</div>
+                        <div className="flex items-center text-yellow-300">
+                          <Star className="h-3 w-3 mr-1 fill-yellow-300" />
+                          <span>Destacado</span>
+                        </div>
+                      </>
+                    )}
                   </div>
-                  <div className="mx-2">|</div>
-                  <div>{match.league}</div>
-                  {match.highlight && (
-                    <>
-                      <div className="mx-2">|</div>
-                      <div className="flex items-center text-yellow-300">
-                        <Star className="h-3 w-3 mr-1 fill-yellow-300" />
-                        <span>Destacado</span>
+
+                  <div className="p-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="text-center w-2/5">
+                        <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-2 shadow-inner">
+                          {match.homeCode}
+                        </div>
+                        <div className="font-medium truncate">
+                          {match.homeTeam}
+                        </div>
                       </div>
-                    </>
-                  )}
+
+                      <div className="text-center w-1/5">
+                        <div className="text-3xl font-bold mb-1 flex justify-center gap-2">
+                          <span>{match.homeScore}</span>
+                          <span className="text-blue-300">-</span>
+                          <span>{match.awayScore}</span>
+                        </div>
+                        <div className="text-xs text-blue-200">EN VIVO</div>
+                      </div>
+
+                      <div className="text-center w-2/5">
+                        <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-2 shadow-inner">
+                          {match.awayCode}
+                        </div>
+                        <div className="font-medium truncate">
+                          {match.awayTeam}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex justify-between items-center">
+                      <button className="text-xs bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-full transition">
+                        Alineaciones
+                      </button>
+                      <button className="text-xs bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-full transition">
+                        Estadísticas
+                      </button>
+                      <button className="text-xs bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-full flex items-center gap-1 transition">
+                        <Bell className="h-3 w-3" />
+                        Notificar
+                      </button>
+                    </div>
+                  </div>
                 </div>
-
-                <div className="p-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <div className="text-center w-2/5">
-                      <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-2 shadow-inner">
-                        {match.homeCode}
-                      </div>
-                      <div className="font-medium truncate">
-                        {match.homeTeam}
-                      </div>
-                    </div>
-
-                    <div className="text-center w-1/5">
-                      <div className="text-3xl font-bold mb-1 flex justify-center gap-2">
-                        <span>{match.homeScore}</span>
-                        <span className="text-blue-300">-</span>
-                        <span>{match.awayScore}</span>
-                      </div>
-                      <div className="text-xs text-blue-200">EN VIVO</div>
-                    </div>
-
-                    <div className="text-center w-2/5">
-                      <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-2 shadow-inner">
-                        {match.awayCode}
-                      </div>
-                      <div className="font-medium truncate">
-                        {match.awayTeam}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 flex justify-between items-center">
-                    <button className="text-xs bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-full transition">
-                      Alineaciones
-                    </button>
-                    <button className="text-xs bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-full transition">
-                      Estadísticas
-                    </button>
-                    <button className="text-xs bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-full flex items-center gap-1 transition">
-                      <Bell className="h-3 w-3" />
-                      Notificar
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center mt-8">
-            <a
-              href="#"
-              className="inline-block bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-6 rounded-lg transition-all duration-300 transform hover:-translate-y-1"
-            >
-              Ver todos los partidos
-            </a>
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -630,109 +612,6 @@ export default function FutbolStats() {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white pt-12 pb-6">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <h3 className="text-lg font-bold mb-4">FútbolStats</h3>
-              <p className="text-gray-400 text-sm">
-                Tu fuente más completa de estadísticas y análisis de fútbol con
-                cobertura global y actualizaciones en tiempo real.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold mb-4">Enlaces Rápidos</h3>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li>
-                  <a href="#" className="hover:text-white transition">
-                    Inicio
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition">
-                    Ligas
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition">
-                    Equipos
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition">
-                    Jugadores
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition">
-                    Noticias
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold mb-4">Principales Ligas</h3>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li>
-                  <a href="#" className="hover:text-white transition">
-                    La Liga
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition">
-                    Premier League
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition">
-                    Serie A
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition">
-                    Bundesliga
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition">
-                    Ligue 1
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold mb-4">Ayuda</h3>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li>
-                  <a href="#" className="hover:text-white transition">
-                    FAQ
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition">
-                    Contacto
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition">
-                    Términos y Condiciones
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition">
-                    Política de Privacidad
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 pt-6 text-center text-gray-500 text-sm">
-            <p>&copy; 2025 FútbolStats. Todos los derechos reservados.</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
