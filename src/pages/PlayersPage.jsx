@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getPlayers, getTeams } from "../../server/api";
-import { Search, User, Users, Medal } from "lucide-react";
+import { Search, User } from "lucide-react";
 
 export default function PlayersPage() {
   const [players, setPlayers] = useState([]);

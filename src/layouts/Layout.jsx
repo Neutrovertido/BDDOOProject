@@ -1,10 +1,6 @@
 import { Link } from "react-router-dom";
-import { Menu, Search } from "lucide-react";
-import { useState } from "react";
 
 export default function Layout({ children }) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">
       <header className="bg-gradient-to-r from-blue-800 to-blue-600 text-white shadow-lg">

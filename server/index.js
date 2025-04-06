@@ -3,7 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import process from "process";
 import { MongoClient } from "mongodb";
-import fetch from "node-fetch"; // Añade esta importación
+import fetch from "node-fetch";
 
 dotenv.config();
 
@@ -81,7 +81,7 @@ app.get("/api/leagues", async (req, res) => {
   }
 });
 
-// Añade este nuevo endpoint
+// ENDPOINT PARA LOS PARTIDOS EN VIVO
 app.get("/api/live-matches", async (req, res) => {
   try {
     const response = await fetch(
@@ -158,6 +158,118 @@ app.get("/api/live-matches", async (req, res) => {
         highlight: false,
       },
     ]);
+  }
+});
+
+// ENDPOINT PARA LAS CLASIFICACIONES
+app.get("/api/standings", async (req, res) => {
+  try {
+    const leagues = {
+      laliga: 2014,
+      premier: 2021,
+      bundesliga: 2002,
+    };
+
+    const standingsData = {};
+
+    for (const [key, id] of Object.entries(leagues)) {
+      const response = await fetch(
+        `https://api.football-data.org/v4/competitions/${id}/standings`,
+        {
+          headers: {
+            "X-Auth-Token": process.env.FOOTBALL_API_KEY,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      standingsData[key] = data.standings[0].table.map((team) => ({
+        pos: team.position,
+        team: team.team.name,
+        pj: team.playedGames,
+        g: team.won,
+        e: team.draw,
+        p: team.lost,
+        gf: team.goalsFor,
+        gc: team.goalsAgainst,
+        dg: team.goalDifference,
+        pts: team.points,
+      }));
+    }
+
+    res.json(standingsData);
+  } catch (error) {
+    console.error("Error fetching standings:", error);
+    // Enviar datos de respaldo desde la base de datos
+    const leagues = await client
+      .db("FBSTATS")
+      .collection("liga")
+      .find({})
+      .toArray();
+    const teams = await client
+      .db("FBSTATS")
+      .collection("equipo")
+      .find({})
+      .toArray();
+    const matches = await client
+      .db("FBSTATS")
+      .collection("partido")
+      .find({})
+      .toArray();
+
+    const standingsData = {};
+
+    // Procesar datos para cada liga
+    leagues.forEach((league) => {
+      const leagueTeams = teams.filter((team) => team.idliga === league.idliga);
+      const leagueMatches = matches.filter(
+        (match) => match.idliga === league.idliga
+      );
+
+      const standings = leagueTeams.map((team) => {
+        const teamMatches = leagueMatches.filter(
+          (match) => match.id_equipo === team.id_equipo
+        );
+        const wins = teamMatches.filter(
+          (match) => match.goles_loc > match.goles_vis
+        ).length;
+        const draws = teamMatches.filter(
+          (match) => match.goles_loc === match.goles_vis
+        ).length;
+        const losses = teamMatches.filter(
+          (match) => match.goles_loc < match.goles_vis
+        ).length;
+
+        return {
+          pos: 0,
+          team: team.nombre_equipo,
+          pj: teamMatches.length,
+          g: wins,
+          e: draws,
+          p: losses,
+          gf: teamMatches.reduce((sum, match) => sum + match.goles_loc, 0),
+          gc: teamMatches.reduce((sum, match) => sum + match.goles_vis, 0),
+          dg: 0,
+          pts: wins * 3 + draws,
+        };
+      });
+
+      // Ordenar por puntos y asignar posiciones
+      standings.sort((a, b) => b.pts - a.pts);
+      standings.forEach((team, index) => {
+        team.pos = index + 1;
+        team.dg = team.gf - team.gc;
+      });
+
+      const leagueName = league.nombre.toLowerCase().replace(/\s+/g, "");
+      standingsData[leagueName] = standings;
+    });
+
+    res.json(standingsData);
   }
 });
 

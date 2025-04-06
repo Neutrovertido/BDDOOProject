@@ -1,29 +1,20 @@
 import { useState, useEffect } from "react";
 import { getMatches, getTeams, getPlayers, getLeagues } from "../server/api";
-import { getLiveMatches } from "../server/footballapi";
+import { getLiveMatches, getStandings } from "../server/footballapi.js";
 import {
-  ChevronDown,
-  Menu,
-  X,
-  Search,
   Star,
   Bell,
   Trophy,
   Activity,
   Calendar,
   Users,
-  TrendingUp,
   Clock,
   User,
 } from "lucide-react";
 
 export default function FutbolStats() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("laliga");
-  const [matches, setMatches] = useState([]);
-  const [teams, setTeams] = useState([]);
-  const [players, setPlayers] = useState([]);
-  const [leagues, setLeagues] = useState([]);
+  const [leagueActiveTab, setLeagueActiveTab] = useState("laliga");
+  const [uclActiveTab, setUclActiveTab] = useState("uclGroupA");
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState([]);
   const [leagueData, setLeagueData] = useState({
@@ -42,13 +33,14 @@ export default function FutbolStats() {
   useEffect(() => {
     async function fetchData() {
       try {
-        // Primero obtener los datos locales
-        const [matchesData, teamsData, playersData, leaguesData] =
+        // Obtener datos locales y de la API
+        const [matchesData, teamsData, playersData, leaguesData, apiStandings] =
           await Promise.all([
             getMatches(),
             getTeams(),
             getPlayers(),
             getLeagues(),
+            getStandings(),
           ]);
 
         // Obtener partidos en vivo
@@ -85,51 +77,65 @@ export default function FutbolStats() {
 
         // Procesar datos para tabla de posiciones
         const leaguesStandings = {};
-        leaguesData.forEach((league) => {
-          const leagueTeams = teamsData.filter(
-            (team) => team.idliga === league.idliga
-          );
-          const leagueMatches = matchesData.filter(
-            (match) => match.idliga === league.idliga
-          );
 
-          const standings = leagueTeams.map((team) => {
-            const teamMatches = leagueMatches.filter(
-              (match) => match.id_equipo === team.id_equipo
+        // Combinar datos de la API con datos locales
+        if (apiStandings) {
+          Object.assign(leaguesStandings, apiStandings);
+        } else {
+          // Usar datos locales como respaldo
+          leaguesData.forEach((league) => {
+            const leagueTeams = teamsData.filter(
+              (team) => team.idliga === league.idliga
             );
-            const wins = teamMatches.filter(
-              (match) => match.goles_loc > match.goles_vis
-            ).length;
-            const draws = teamMatches.filter(
-              (match) => match.goles_loc === match.goles_vis
-            ).length;
-            const losses = teamMatches.filter(
-              (match) => match.goles_loc < match.goles_vis
-            ).length;
+            const leagueMatches = matchesData.filter(
+              (match) => match.idliga === league.idliga
+            );
 
-            return {
-              pos: 0,
-              team: team.nombre_equipo,
-              pj: teamMatches.length,
-              g: wins,
-              e: draws,
-              p: losses,
-              gf: teamMatches.reduce((sum, match) => sum + match.goles_loc, 0),
-              gc: teamMatches.reduce((sum, match) => sum + match.goles_vis, 0),
-              dg: 0,
-              pts: wins * 3 + draws,
-            };
+            const standings = leagueTeams.map((team) => {
+              const teamMatches = leagueMatches.filter(
+                (match) => match.id_equipo === team.id_equipo
+              );
+              const wins = teamMatches.filter(
+                (match) => match.goles_loc > match.goles_vis
+              ).length;
+              const draws = teamMatches.filter(
+                (match) => match.goles_loc === match.goles_vis
+              ).length;
+              const losses = teamMatches.filter(
+                (match) => match.goles_loc < match.goles_vis
+              ).length;
+
+              return {
+                pos: 0,
+                team: team.nombre_equipo,
+                pj: teamMatches.length,
+                g: wins,
+                e: draws,
+                p: losses,
+                gf: teamMatches.reduce(
+                  (sum, match) => sum + match.goles_loc,
+                  0
+                ),
+                gc: teamMatches.reduce(
+                  (sum, match) => sum + match.goles_vis,
+                  0
+                ),
+                dg: 0,
+                pts: wins * 3 + draws,
+              };
+            });
+
+            standings.sort((a, b) => b.pts - a.pts);
+            standings.forEach((team, index) => {
+              team.pos = index + 1;
+              team.dg = team.gf - team.gc;
+            });
+
+            const leagueName = league.nombre.toLowerCase().replace(/\s+/g, "");
+            leaguesStandings[leagueName] = standings;
           });
+        }
 
-          standings.sort((a, b) => b.pts - a.pts);
-          standings.forEach((team, index) => {
-            team.pos = index + 1;
-            team.dg = team.gf - team.gc;
-          });
-
-          const leagueName = league.nombre.toLowerCase().replace(/\s+/g, "");
-          leaguesStandings[leagueName] = standings;
-        });
         setLeagueData(leaguesStandings);
 
         // Procesar datos para jugadores destacados
@@ -324,9 +330,9 @@ export default function FutbolStats() {
 
           <div className="mb-6 flex flex-wrap justify-center gap-2">
             <button
-              onClick={() => setActiveTab("laliga")}
+              onClick={() => setLeagueActiveTab("laliga")}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                activeTab === "laliga"
+                leagueActiveTab === "laliga"
                   ? "bg-blue-600 text-white"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
@@ -334,9 +340,9 @@ export default function FutbolStats() {
               La Liga
             </button>
             <button
-              onClick={() => setActiveTab("premier")}
+              onClick={() => setLeagueActiveTab("premier")}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                activeTab === "premier"
+                leagueActiveTab === "premier"
                   ? "bg-blue-600 text-white"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
@@ -344,19 +350,9 @@ export default function FutbolStats() {
               Premier League
             </button>
             <button
-              onClick={() => setActiveTab("seriea")}
+              onClick={() => setLeagueActiveTab("bundesliga")}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                activeTab === "seriea"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              Serie A
-            </button>
-            <button
-              onClick={() => setActiveTab("bundesliga")}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                activeTab === "bundesliga"
+                leagueActiveTab === "bundesliga"
                   ? "bg-blue-600 text-white"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
@@ -383,7 +379,7 @@ export default function FutbolStats() {
                   </tr>
                 </thead>
                 <tbody>
-                  {leagueData[activeTab]?.map(
+                  {leagueData[leagueActiveTab]?.map(
                     (
                       team,
                       index // Usando el operador opcional
@@ -443,9 +439,9 @@ export default function FutbolStats() {
 
             <div className="mb-6 flex flex-wrap justify-center gap-2">
               <button
-                onClick={() => setActiveTab("uclGroupA")}
+                onClick={() => setUclActiveTab("uclGroupA")}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  activeTab === "uclGroupA"
+                  uclActiveTab === "uclGroupA"
                     ? "bg-blue-600 text-blue"
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
@@ -453,9 +449,9 @@ export default function FutbolStats() {
                 Grupo A
               </button>
               <button
-                onClick={() => setActiveTab("uclGroupB")}
+                onClick={() => setUclActiveTab("uclGroupB")}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  activeTab === "uclGroupB"
+                  uclActiveTab === "uclGroupB"
                     ? "bg-blue-600 text-blue"
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
@@ -463,9 +459,9 @@ export default function FutbolStats() {
                 Grupo B
               </button>
               <button
-                onClick={() => setActiveTab("uclGroupC")}
+                onClick={() => setUclActiveTab("uclGroupC")}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  activeTab === "uclGroupC"
+                  uclActiveTab === "uclGroupC"
                     ? "bg-blue-600 text-blue"
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
@@ -473,9 +469,9 @@ export default function FutbolStats() {
                 Grupo C
               </button>
               <button
-                onClick={() => setActiveTab("uclGroupD")}
+                onClick={() => setUclActiveTab("uclGroupD")}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  activeTab === "uclGroupD"
+                  uclActiveTab === "uclGroupD"
                     ? "bg-blue-600 text-blue"
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
@@ -502,7 +498,7 @@ export default function FutbolStats() {
                     </tr>
                   </thead>
                   <tbody>
-                    {leagueData[activeTab]?.map(
+                    {leagueData[uclActiveTab]?.map(
                       (
                         team,
                         index // Usando el operador opcional
