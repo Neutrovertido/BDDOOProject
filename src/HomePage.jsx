@@ -25,7 +25,16 @@ export default function FutbolStats() {
   const [leagues, setLeagues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState([]);
-  const [leagueData, setLeagueData] = useState({});
+  const [leagueData, setLeagueData] = useState({
+    laliga: [],
+    premier: [],
+    seriea: [],
+    bundesliga: [],
+    uclGroupA: [],
+    uclGroupB: [],
+    uclGroupC: [],
+    uclGroupD: [],
+  });
   const [topPlayers, setTopPlayers] = useState([]);
   const [liveMatches, setLiveMatches] = useState([]);
 
@@ -179,119 +188,6 @@ export default function FutbolStats() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-blue-800 to-blue-600 text-white shadow-lg">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-2">
-              <div className="text-3xl font-bold">⚽</div>
-              <div className="text-2xl font-bold">FútbolStats</div>
-            </div>
-
-            {/* Desktop navigation */}
-            <nav className="hidden md:flex space-x-6">
-              <a
-                href="#"
-                className="font-medium hover:text-blue-200 transition duration-200 border-b-2 border-white"
-              >
-                Inicio
-              </a>
-              <a
-                href="#"
-                className="font-medium hover:text-blue-200 transition duration-200"
-              >
-                Ligas
-              </a>
-              <a
-                href="#"
-                className="font-medium hover:text-blue-200 transition duration-200"
-              >
-                Equipos
-              </a>
-              <a
-                href="#"
-                className="font-medium hover:text-blue-200 transition duration-200"
-              >
-                Jugadores
-              </a>
-              <a
-                href="#"
-                className="font-medium hover:text-blue-200 transition duration-200"
-              >
-                Noticias
-              </a>
-            </nav>
-
-            {/* Search and Mobile menu button */}
-            <div className="flex items-center space-x-4">
-              <div className="hidden md:flex items-center bg-blue-700/50 rounded-full px-3 py-1">
-                <Search className="h-4 w-4 text-blue-200" />
-                <input
-                  type="text"
-                  placeholder="Buscar..."
-                  className="bg-transparent border-none focus:outline-none text-white placeholder-blue-200 ml-2 w-36"
-                />
-              </div>
-
-              <button
-                className="md:hidden text-white"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-              >
-                {isMenuOpen ? (
-                  <X className="h-6 w-6" />
-                ) : (
-                  <Menu className="h-6 w-6" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Mobile navigation */}
-          {isMenuOpen && (
-            <nav className="md:hidden mt-4 pb-4 flex flex-col space-y-2 animate-fadeIn">
-              <a
-                href="#"
-                className="font-medium hover:bg-blue-700 rounded p-2 transition"
-              >
-                Inicio
-              </a>
-              <a
-                href="#"
-                className="font-medium hover:bg-blue-700 rounded p-2 transition"
-              >
-                Ligas
-              </a>
-              <a
-                href="#"
-                className="font-medium hover:bg-blue-700 rounded p-2 transition"
-              >
-                Equipos
-              </a>
-              <a
-                href="#"
-                className="font-medium hover:bg-blue-700 rounded p-2 transition"
-              >
-                Jugadores
-              </a>
-              <a
-                href="#"
-                className="font-medium hover:bg-blue-700 rounded p-2 transition"
-              >
-                Noticias
-              </a>
-              <div className="flex items-center bg-blue-700/50 rounded-full px-3 py-2 mt-2">
-                <Search className="h-4 w-4 text-blue-200" />
-                <input
-                  type="text"
-                  placeholder="Buscar..."
-                  className="bg-transparent border-none focus:outline-none text-white placeholder-blue-200 ml-2 w-full"
-                />
-              </div>
-            </nav>
-          )}
-        </div>
-      </header>
-
       {/* Hero section */}
       <section className="relative bg-gradient-to-b from-blue-900 to-blue-800 text-white overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
