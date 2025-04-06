@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getMatches, getTeams, getPlayers, getLeagues } from "../server/api";
 import {
   ChevronDown,
   Menu,
@@ -18,541 +19,163 @@ import {
 export default function FutbolStats() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("laliga");
+  const [matches, setMatches] = useState([]);
+  const [teams, setTeams] = useState([]);
+  const [players, setPlayers] = useState([]);
+  const [leagues, setLeagues] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState([]);
+  const [leagueData, setLeagueData] = useState({});
+  const [topPlayers, setTopPlayers] = useState([]);
+  const [liveMatches, setLiveMatches] = useState([]);
 
-  // Datos de ejemplo
-  const liveMatches = [
-    {
-      id: 1,
-      homeTeam: "Barcelona",
-      homeCode: "BAR",
-      homeScore: 2,
-      awayTeam: "Real Madrid",
-      awayCode: "RMA",
-      awayScore: 1,
-      minute: 75,
-      league: "La Liga",
-      highlight: true,
-    },
-    {
-      id: 2,
-      homeTeam: "Man City",
-      homeCode: "MCI",
-      homeScore: 1,
-      awayTeam: "Liverpool",
-      homeCode2: "LIV",
-      awayScore: 1,
-      minute: 62,
-      league: "Premier League",
-      highlight: false,
-    },
-    {
-      id: 3,
-      homeTeam: "Juventus",
-      homeCode: "JUV",
-      homeScore: 0,
-      awayTeam: "Inter",
-      awayCode: "INT",
-      awayScore: 2,
-      minute: 81,
-      league: "Serie A",
-      highlight: false,
-    },
-  ];
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [matchesData, teamsData, playersData, leaguesData] =
+          await Promise.all([
+            getMatches(),
+            getTeams(),
+            getPlayers(),
+            getLeagues(),
+          ]);
 
-  const leagueData = {
-    laliga: [
-      {
-        pos: 1,
-        team: "Barcelona",
-        pj: 25,
-        g: 19,
-        e: 4,
-        p: 2,
-        gf: 57,
-        gc: 19,
-        dg: 38,
-        pts: 61,
-      },
-      {
-        pos: 2,
-        team: "Real Madrid",
-        pj: 25,
-        g: 18,
-        e: 5,
-        p: 2,
-        gf: 52,
-        gc: 16,
-        dg: 36,
-        pts: 59,
-      },
-      {
-        pos: 3,
-        team: "Atlético Madrid",
-        pj: 25,
-        g: 16,
-        e: 3,
-        p: 6,
-        gf: 45,
-        gc: 24,
-        dg: 21,
-        pts: 51,
-      },
-      {
-        pos: 4,
-        team: "Real Sociedad",
-        pj: 25,
-        g: 13,
-        e: 6,
-        p: 6,
-        gf: 38,
-        gc: 25,
-        dg: 13,
-        pts: 45,
-      },
-      {
-        pos: 5,
-        team: "Villarreal",
-        pj: 25,
-        g: 12,
-        e: 6,
-        p: 7,
-        gf: 40,
-        gc: 31,
-        dg: 9,
-        pts: 42,
-      },
-    ],
-    premier: [
-      {
-        pos: 1,
-        team: "Man City",
-        pj: 25,
-        g: 18,
-        e: 4,
-        p: 3,
-        gf: 59,
-        gc: 21,
-        dg: 38,
-        pts: 58,
-      },
-      {
-        pos: 2,
-        team: "Liverpool",
-        pj: 25,
-        g: 17,
-        e: 6,
-        p: 2,
-        gf: 55,
-        gc: 19,
-        dg: 36,
-        pts: 57,
-      },
-      {
-        pos: 3,
-        team: "Arsenal",
-        pj: 25,
-        g: 16,
-        e: 5,
-        p: 4,
-        gf: 52,
-        gc: 21,
-        dg: 31,
-        pts: 53,
-      },
-      {
-        pos: 4,
-        team: "Tottenham",
-        pj: 25,
-        g: 14,
-        e: 5,
-        p: 6,
-        gf: 49,
-        gc: 32,
-        dg: 17,
-        pts: 47,
-      },
-      {
-        pos: 5,
-        team: "Chelsea",
-        pj: 25,
-        g: 13,
-        e: 5,
-        p: 7,
-        gf: 45,
-        gc: 30,
-        dg: 15,
-        pts: 44,
-      },
-    ],
-    seriea: [
-      {
-        pos: 1,
-        team: "Inter",
-        pj: 25,
-        g: 19,
-        e: 4,
-        p: 2,
-        gf: 55,
-        gc: 14,
-        dg: 41,
-        pts: 61,
-      },
-      {
-        pos: 2,
-        team: "Milan",
-        pj: 25,
-        g: 17,
-        e: 5,
-        p: 3,
-        gf: 50,
-        gc: 22,
-        dg: 28,
-        pts: 56,
-      },
-      {
-        pos: 3,
-        team: "Napoli",
-        pj: 25,
-        g: 15,
-        e: 6,
-        p: 4,
-        gf: 48,
-        gc: 20,
-        dg: 28,
-        pts: 51,
-      },
-      {
-        pos: 4,
-        team: "Juventus",
-        pj: 25,
-        g: 14,
-        e: 5,
-        p: 6,
-        gf: 42,
-        gc: 25,
-        dg: 17,
-        pts: 47,
-      },
-      {
-        pos: 5,
-        team: "Atalanta",
-        pj: 25,
-        g: 13,
-        e: 5,
-        p: 7,
-        gf: 45,
-        gc: 29,
-        dg: 16,
-        pts: 44,
-      },
-    ],
-    bundesliga: [
-      {
-        pos: 1,
-        team: "Bayern Munich",
-        pj: 25,
-        g: 20,
-        e: 3,
-        p: 2,
-        gf: 69,
-        gc: 20,
-        dg: 49,
-        pts: 63,
-      },
-      {
-        pos: 2,
-        team: "Dortmund",
-        pj: 25,
-        g: 17,
-        e: 3,
-        p: 5,
-        gf: 56,
-        gc: 29,
-        dg: 27,
-        pts: 54,
-      },
-      {
-        pos: 3,
-        team: "Bayer Leverkusen",
-        pj: 25,
-        g: 15,
-        e: 5,
-        p: 5,
-        gf: 50,
-        gc: 27,
-        dg: 23,
-        pts: 50,
-      },
-      {
-        pos: 4,
-        team: "RB Leipzig",
-        pj: 25,
-        g: 14,
-        e: 5,
-        p: 6,
-        gf: 48,
-        gc: 23,
-        dg: 25,
-        pts: 47,
-      },
-      {
-        pos: 5,
-        team: "Eintracht Frankfurt",
-        pj: 25,
-        g: 12,
-        e: 7,
-        p: 6,
-        gf: 42,
-        gc: 31,
-        dg: 11,
-        pts: 43,
-      },
-    ],
-    uclGroupA: [
-      {
-        pos: 1,
-        team: "PSG",
-        pj: 6,
-        g: 4,
-        e: 1,
-        p: 1,
-        gf: 12,
-        gc: 5,
-        dg: 7,
-        pts: 13,
-      },
-      {
-        pos: 2,
-        team: "Manchester United",
-        pj: 6,
-        g: 3,
-        e: 2,
-        p: 1,
-        gf: 10,
-        gc: 6,
-        dg: 4,
-        pts: 11,
-      },
-      {
-        pos: 3,
-        team: "RB Leipzig",
-        pj: 6,
-        g: 2,
-        e: 1,
-        p: 3,
-        gf: 8,
-        gc: 9,
-        dg: -1,
-        pts: 7,
-      },
-      {
-        pos: 4,
-        team: "Club Brugge",
-        pj: 6,
-        g: 0,
-        e: 2,
-        p: 4,
-        gf: 3,
-        gc: 13,
-        dg: -10,
-        pts: 2,
-      },
-    ],
-    uclGroupB: [
-      {
-        pos: 1,
-        team: "Real Madrid",
-        pj: 6,
-        g: 5,
-        e: 1,
-        p: 0,
-        gf: 14,
-        gc: 3,
-        dg: 11,
-        pts: 16,
-      },
-      {
-        pos: 2,
-        team: "Inter Milan",
-        pj: 6,
-        g: 3,
-        e: 2,
-        p: 1,
-        gf: 10,
-        gc: 6,
-        dg: 4,
-        pts: 11,
-      },
-      {
-        pos: 3,
-        team: "Shakhtar Donetsk",
-        pj: 6,
-        g: 1,
-        e: 2,
-        p: 3,
-        gf: 6,
-        gc: 10,
-        dg: -4,
-        pts: 5,
-      },
-      {
-        pos: 4,
-        team: "Celtic",
-        pj: 6,
-        g: 0,
-        e: 1,
-        p: 5,
-        gf: 2,
-        gc: 13,
-        dg: -11,
-        pts: 1,
-      },
-    ],
-    uclGroupC: [
-      {
-        pos: 1,
-        team: "Bayern Munich",
-        pj: 6,
-        g: 6,
-        e: 0,
-        p: 0,
-        gf: 18,
-        gc: 2,
-        dg: 16,
-        pts: 18,
-      },
-      {
-        pos: 2,
-        team: "Barcelona",
-        pj: 6,
-        g: 4,
-        e: 0,
-        p: 2,
-        gf: 12,
-        gc: 6,
-        dg: 6,
-        pts: 12,
-      },
-      {
-        pos: 3,
-        team: "Ajax",
-        pj: 6,
-        g: 1,
-        e: 1,
-        p: 4,
-        gf: 5,
-        gc: 14,
-        dg: -9,
-        pts: 4,
-      },
-      {
-        pos: 4,
-        team: "Dinamo Zagreb",
-        pj: 6,
-        g: 0,
-        e: 1,
-        p: 5,
-        gf: 2,
-        gc: 15,
-        dg: -13,
-        pts: 1,
-      },
-    ],
-    uclGroupD: [
-      {
-        pos: 1,
-        team: "Tottenham",
-        pj: 6,
-        g: 4,
-        e: 1,
-        p: 1,
-        gf: 11,
-        gc: 5,
-        dg: 6,
-        pts: 13,
-      },
-      {
-        pos: 2,
-        team: "Marseille",
-        pj: 6,
-        g: 3,
-        e: 1,
-        p: 2,
-        gf: 9,
-        gc: 7,
-        dg: 2,
-        pts: 10,
-      },
-      {
-        pos: 3,
-        team: "Sporting CP",
-        pj: 6,
-        g: 2,
-        e: 1,
-        p: 3,
-        gf: 7,
-        gc: 10,
-        dg: -3,
-        pts: 7,
-      },
-      {
-        pos: 4,
-        team: "Eintracht Frankfurt",
-        pj: 6,
-        g: 1,
-        e: 1,
-        p: 4,
-        gf: 4,
-        gc: 9,
-        dg: -5,
-        pts: 4,
-      },
-    ],
-  };
+        // Procesar datos para estadísticas generales
+        const statsData = [
+          {
+            label: "Ligas",
+            value: `${leaguesData.length}+`,
+            icon: <Trophy className="h-8 w-8 text-blue-600" />,
+          },
+          {
+            label: "Equipos",
+            value: `${teamsData.length}+`,
+            icon: <Users className="h-8 w-8 text-blue-600" />,
+          },
+          {
+            label: "Jugadores",
+            value: `${playersData.length}+`,
+            icon: <Activity className="h-8 w-8 text-blue-600" />,
+          },
+          {
+            label: "Partidos",
+            value: `${matchesData.length}+`,
+            icon: <Calendar className="h-8 w-8 text-blue-600" />,
+          },
+        ];
+        setStats(statsData);
 
-  const topPlayers = [
-    {
-      name: "Robert Lewandowski",
-      team: "Barcelona",
-      goals: 23,
-      image: "/api/placeholder/80/80",
-    },
-    {
-      name: "Erling Haaland",
-      team: "Man City",
-      goals: 21,
-      image: "/api/placeholder/80/80",
-    },
-    {
-      name: "Kylian Mbappé",
-      team: "Real Madrid",
-      goals: 19,
-      image: "/api/placeholder/80/80",
-    },
-  ];
+        // Procesar datos para partidos en vivo
+        const processedMatches = matchesData.map((match) => ({
+          id: match.idpartido,
+          homeTeam:
+            teamsData.find((team) => team.id_equipo === match.id_equipo)
+              ?.nombre_equipo || "Unknown",
+          homeCode:
+            teamsData
+              .find((team) => team.id_equipo === match.id_equipo)
+              ?.nombre_equipo.substring(0, 3)
+              .toUpperCase() || "UNK",
+          homeScore: match.goles_loc,
+          awayTeam:
+            teamsData.find((team) => team.id_equipo !== match.id_equipo)
+              ?.nombre_equipo || "Unknown",
+          awayCode:
+            teamsData
+              .find((team) => team.id_equipo !== match.id_equipo)
+              ?.nombre_equipo.substring(0, 3)
+              .toUpperCase() || "UNK",
+          awayScore: match.goles_vis,
+          minute: 45,
+          league:
+            leaguesData.find((league) => league.idliga === match.idliga)
+              ?.nombre || "Unknown",
+          highlight: false,
+        }));
+        setLiveMatches(processedMatches);
 
-  const stats = [
-    {
-      label: "Ligas",
-      value: "25+",
-      icon: <Trophy className="h-8 w-8 text-blue-600" />,
-    },
-    {
-      label: "Equipos",
-      value: "500+",
-      icon: <Users className="h-8 w-8 text-blue-600" />,
-    },
-    {
-      label: "Estadísticas",
-      value: "10K+",
-      icon: <Activity className="h-8 w-8 text-blue-600" />,
-    },
-    {
-      label: "Partidos",
-      value: "1000+",
-      icon: <Calendar className="h-8 w-8 text-blue-600" />,
-    },
-  ];
+        // Procesar datos para tabla de posiciones
+        const leaguesStandings = {};
+        leaguesData.forEach((league) => {
+          const leagueTeams = teamsData.filter(
+            (team) => team.idliga === league.idliga
+          );
+          const leagueMatches = matchesData.filter(
+            (match) => match.idliga === league.idliga
+          );
+
+          const standings = leagueTeams.map((team) => {
+            const teamMatches = leagueMatches.filter(
+              (match) => match.id_equipo === team.id_equipo
+            );
+            const wins = teamMatches.filter(
+              (match) => match.goles_loc > match.goles_vis
+            ).length;
+            const draws = teamMatches.filter(
+              (match) => match.goles_loc === match.goles_vis
+            ).length;
+            const losses = teamMatches.filter(
+              (match) => match.goles_loc < match.goles_vis
+            ).length;
+
+            return {
+              pos: 0,
+              team: team.nombre_equipo,
+              pj: teamMatches.length,
+              g: wins,
+              e: draws,
+              p: losses,
+              gf: teamMatches.reduce((sum, match) => sum + match.goles_loc, 0),
+              gc: teamMatches.reduce((sum, match) => sum + match.goles_vis, 0),
+              dg: 0,
+              pts: wins * 3 + draws,
+            };
+          });
+
+          standings.sort((a, b) => b.pts - a.pts);
+          standings.forEach((team, index) => {
+            team.pos = index + 1;
+            team.dg = team.gf - team.gc;
+          });
+
+          const leagueName = league.nombre.toLowerCase().replace(/\s+/g, "");
+          leaguesStandings[leagueName] = standings;
+        });
+        setLeagueData(leaguesStandings);
+        // Procesar datos para jugadores destacados
+        const processedTopPlayers = playersData.slice(0, 3).map((player) => ({
+          name: `${player.nombre} ${player.apellido}`,
+          team:
+            teamsData.find((t) => t.id_equipo === player.id_equipo)
+              ?.nombre_equipo || "Unknown",
+          image: "https://via.placeholder.com/150",
+          goals: 0,
+        }));
+        setTopPlayers(processedTopPlayers);
+
+        // Actualizar estados
+        // Actualizar estados
+        setMatches(matchesData);
+        setTeams(teamsData);
+        setPlayers(playersData);
+        setLeagues(leaguesData);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">
@@ -741,7 +364,7 @@ export default function FutbolStats() {
                 <div className="p-1 bg-blue-600/50 text-xs font-medium text-center flex items-center justify-center">
                   <div className="flex items-center">
                     <Clock className="h-3 w-3 mr-1" />
-                    <span>{match.minute}'</span>
+                    <span>{match.minute}</span>
                   </div>
                   <div className="mx-2">|</div>
                   <div>{match.league}</div>
@@ -882,35 +505,40 @@ export default function FutbolStats() {
                   </tr>
                 </thead>
                 <tbody>
-                  {leagueData[activeTab].map((team, index) => (
-                    <tr
-                      key={index}
-                      className={`border-b border-gray-200 hover:bg-blue-50 transition ${
-                        index < 4 ? "bg-blue-50/50" : ""
-                      }`}
-                    >
-                      <td
-                        className={`py-3 px-4 font-medium ${
-                          index < 4 ? "text-blue-600" : ""
+                  {leagueData[activeTab]?.map(
+                    (
+                      team,
+                      index // Usando el operador opcional
+                    ) => (
+                      <tr
+                        key={index}
+                        className={`border-b border-gray-200 hover:bg-blue-50 transition ${
+                          index < 4 ? "bg-blue-50/50" : ""
                         }`}
                       >
-                        {team.pos}
-                      </td>
-                      <td className="py-3 px-4 font-medium">{team.team}</td>
-                      <td className="py-3 px-2 text-center">{team.pj}</td>
-                      <td className="py-3 px-2 text-center">{team.g}</td>
-                      <td className="py-3 px-2 text-center">{team.e}</td>
-                      <td className="py-3 px-2 text-center">{team.p}</td>
-                      <td className="py-3 px-2 text-center">{team.gf}</td>
-                      <td className="py-3 px-2 text-center">{team.gc}</td>
-                      <td className="py-3 px-2 text-center font-medium">
-                        {team.dg}
-                      </td>
-                      <td className="py-3 px-2 text-center font-bold">
-                        {team.pts}
-                      </td>
-                    </tr>
-                  ))}
+                        <td
+                          className={`py-3 px-4 font-medium ${
+                            index < 4 ? "text-blue-600" : ""
+                          }`}
+                        >
+                          {team.pos}
+                        </td>
+                        <td className="py-3 px-4 font-medium">{team.team}</td>
+                        <td className="py-3 px-2 text-center">{team.pj}</td>
+                        <td className="py-3 px-2 text-center">{team.g}</td>
+                        <td className="py-3 px-2 text-center">{team.e}</td>
+                        <td className="py-3 px-2 text-center">{team.p}</td>
+                        <td className="py-3 px-2 text-center">{team.gf}</td>
+                        <td className="py-3 px-2 text-center">{team.gc}</td>
+                        <td className="py-3 px-2 text-center font-medium">
+                          {team.dg}
+                        </td>
+                        <td className="py-3 px-2 text-center font-bold">
+                          {team.pts}
+                        </td>
+                      </tr>
+                    )
+                  )}
                 </tbody>
               </table>
             </div>
@@ -929,7 +557,7 @@ export default function FutbolStats() {
       {/* UEFA Champions League Standings Section */}
       <section className="text-blue">
         <div className="py-24 bg-[url('mondongo1.jpg')] bg-cover bg-center">
-          <div class="inset-0 bg-blue-500 opacity-50 overflow-hidden"></div>
+          <div className="inset-0 bg-blue-500 opacity-50 overflow-hidden"></div>
           <div className="container mx-auto px-4">
             <h2 className="text-white text-3xl font-bold text-center mb-10">
               Clasificación - UEFA Champions League
@@ -996,35 +624,40 @@ export default function FutbolStats() {
                     </tr>
                   </thead>
                   <tbody>
-                    {leagueData[activeTab]?.map((team, index) => (
-                      <tr
-                        key={index}
-                        className={`border-b border-gray-200 hover:bg-blue-50 transition ${
-                          index < 2 ? "bg-blue-50/50" : ""
-                        }`}
-                      >
-                        <td
-                          className={`py-3 px-4 font-medium ${
-                            index < 2 ? "text-blue-600" : ""
+                    {leagueData[activeTab]?.map(
+                      (
+                        team,
+                        index // Usando el operador opcional
+                      ) => (
+                        <tr
+                          key={index}
+                          className={`border-b border-gray-200 hover:bg-blue-50 transition ${
+                            index < 2 ? "bg-blue-50/50" : ""
                           }`}
                         >
-                          {team.pos}
-                        </td>
-                        <td className="py-3 px-4 font-medium">{team.team}</td>
-                        <td className="py-3 px-2 text-center">{team.pj}</td>
-                        <td className="py-3 px-2 text-center">{team.g}</td>
-                        <td className="py-3 px-2 text-center">{team.e}</td>
-                        <td className="py-3 px-2 text-center">{team.p}</td>
-                        <td className="py-3 px-2 text-center">{team.gf}</td>
-                        <td className="py-3 px-2 text-center">{team.gc}</td>
-                        <td className="py-3 px-2 text-center font-medium">
-                          {team.dg}
-                        </td>
-                        <td className="py-3 px-2 text-center font-bold">
-                          {team.pts}
-                        </td>
-                      </tr>
-                    ))}
+                          <td
+                            className={`py-3 px-4 font-medium ${
+                              index < 2 ? "text-blue-600" : ""
+                            }`}
+                          >
+                            {team.pos}
+                          </td>
+                          <td className="py-3 px-4 font-medium">{team.team}</td>
+                          <td className="py-3 px-2 text-center">{team.pj}</td>
+                          <td className="py-3 px-2 text-center">{team.g}</td>
+                          <td className="py-3 px-2 text-center">{team.e}</td>
+                          <td className="py-3 px-2 text-center">{team.p}</td>
+                          <td className="py-3 px-2 text-center">{team.gf}</td>
+                          <td className="py-3 px-2 text-center">{team.gc}</td>
+                          <td className="py-3 px-2 text-center font-medium">
+                            {team.dg}
+                          </td>
+                          <td className="py-3 px-2 text-center font-bold">
+                            {team.pts}
+                          </td>
+                        </tr>
+                      )
+                    )}
                   </tbody>
                 </table>
               </div>
