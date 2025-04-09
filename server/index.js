@@ -162,7 +162,7 @@ app.get("/api/live-matches", async (req, res) => {
 });
 
 // ENDPOINT PARA LAS CLASIFICACIONES
-const fetchWithRetry = async (url, options, retries = 5, delay = 1000) => {
+const fetchWithRetry = async (url, options, retries = 5, delay = 5625) => {
   for (let i = 0; i < retries; i++) {
     const response = await fetch(url, options);
 
