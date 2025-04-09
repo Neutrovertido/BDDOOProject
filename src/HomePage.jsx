@@ -14,7 +14,7 @@ import {
 
 export default function FutbolStats() {
   const [leagueActiveTab, setLeagueActiveTab] = useState("laliga");
-  const [uclActiveTab, setUclActiveTab] = useState("uclGroupA");
+  const [uclActiveTab, setUclActiveTab] = useState("cl");
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState([]);
   const [leagueData, setLeagueData] = useState({
@@ -22,10 +22,7 @@ export default function FutbolStats() {
     premier: [],
     seriea: [],
     bundesliga: [],
-    uclGroupA: [],
-    uclGroupB: [],
-    uclGroupC: [],
-    uclGroupD: [],
+    cl: [],
   });
   const [topPlayers, setTopPlayers] = useState([]);
   const [liveMatches, setLiveMatches] = useState([]);
@@ -436,50 +433,6 @@ export default function FutbolStats() {
             <h2 className="text-white text-3xl font-bold text-center mb-10">
               Clasificación - UEFA Champions League
             </h2>
-
-            <div className="mb-6 flex flex-wrap justify-center gap-2">
-              <button
-                onClick={() => setUclActiveTab("uclGroupA")}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  uclActiveTab === "uclGroupA"
-                    ? "bg-blue-600 text-blue"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
-              >
-                Grupo A
-              </button>
-              <button
-                onClick={() => setUclActiveTab("uclGroupB")}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  uclActiveTab === "uclGroupB"
-                    ? "bg-blue-600 text-blue"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
-              >
-                Grupo B
-              </button>
-              <button
-                onClick={() => setUclActiveTab("uclGroupC")}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  uclActiveTab === "uclGroupC"
-                    ? "bg-blue-600 text-blue"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
-              >
-                Grupo C
-              </button>
-              <button
-                onClick={() => setUclActiveTab("uclGroupD")}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  uclActiveTab === "uclGroupD"
-                    ? "bg-blue-600 text-blue"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
-              >
-                Grupo D
-              </button>
-            </div>
-
             <div className="bg-white rounded-xl shadow-md overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="min-w-full">

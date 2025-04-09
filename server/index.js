@@ -162,18 +162,39 @@ app.get("/api/live-matches", async (req, res) => {
 });
 
 // ENDPOINT PARA LAS CLASIFICACIONES
+const fetchWithRetry = async (url, options, retries = 5, delay = 1000) => {
+  for (let i = 0; i < retries; i++) {
+    const response = await fetch(url, options);
+
+    if (response.ok) {
+      return response;
+    }
+
+    if (response.status === 429) {
+      console.warn(`Rate limit hit. Retrying in ${delay}ms...`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      delay *= 2; // Exponential backoff
+    } else {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  }
+
+  throw new Error("Max retries reached. Unable to fetch data.");
+};
+
 app.get("/api/standings", async (req, res) => {
   try {
     const leagues = {
       laliga: 2014,
       premier: 2021,
       bundesliga: 2002,
+      cl: 2001,
     };
 
     const standingsData = {};
 
     for (const [key, id] of Object.entries(leagues)) {
-      const response = await fetch(
+      const response = await fetchWithRetry(
         `https://api.football-data.org/v4/competitions/${id}/standings`,
         {
           headers: {
@@ -181,10 +202,6 @@ app.get("/api/standings", async (req, res) => {
           },
         }
       );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
 
       const data = await response.json();
       standingsData[key] = data.standings[0].table.map((team) => ({
