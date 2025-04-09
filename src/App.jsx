@@ -1,21 +1,23 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import HomePage from './HomePage'
-import Navbar from './navbar'
-import SplitText from './animatedtext'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Layout from "./layouts/Layout";
+import HomePage from "./HomePage";
+import LeaguesPage from "./pages/LeaguesPage";
+import TeamsPage from "./pages/TeamsPage";
+import PlayersPage from "./pages/PlayersPage";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-       <HomePage /> 
-      {/* <Navbar /> */}
-      {/* <SplitText /> */}
-    </>
-  )
+    <Router>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/leagues" element={<LeaguesPage />} />
+          <Route path="/teams" element={<TeamsPage />} />
+          <Route path="/players" element={<PlayersPage />} />
+        </Routes>
+      </Layout>
+    </Router>
+  );
 }
 
-export default App
+export default App;
